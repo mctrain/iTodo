@@ -1,4 +1,4 @@
-import preferences from '@ohos.data.preferences';
+﻿import preferences from '@ohos.data.preferences';
 import pasteboard from '@ohos.pasteboard';
 import promptAction from '@ohos.promptAction';
 import type common from '@ohos.app.ability.common';
@@ -71,15 +71,15 @@ class CalendarDay {
   }
 }
 
-const WEEK_LABELS: string[] = ['日', '一', '二', '三', '四', '五', '六'];
+const WEEK_LABELS: Array<string> = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const THEMES: Theme[] = [
-  new Theme('梦幻紫', '#F3ECFF', '#FFFFFF', '#7E57C2', '#1F1B2E', '#6B6485', '#E7D9FF'),
-  new Theme('赛博朋克', '#0B0B1E', '#1C1230', '#00F0FF', '#F3F1FF', '#9C8CD7', '#251C3D'),
-  new Theme('自然绿', '#EAF7EC', '#FFFFFF', '#2E7D32', '#1B2E1E', '#5C7C62', '#D7EEDB'),
-  new Theme('日落橙', '#FFF1E6', '#FFFFFF', '#F97316', '#3A1C10', '#8A5640', '#FFE1CC'),
-  new Theme('海洋蓝', '#E7F6FF', '#FFFFFF', '#0284C7', '#0B2238', '#4D6A82', '#D6EEFF'),
-  new Theme('简约白', '#F6F6F6', '#FFFFFF', '#111827', '#111827', '#6B7280', '#E5E7EB')
+  new Theme('Lavender', '#F3ECFF', '#FFFFFF', '#7E57C2', '#1F1B2E', '#6B6485', '#E7D9FF'),
+  new Theme('Cyber', '#0B0B1E', '#1C1230', '#00F0FF', '#F3F1FF', '#9C8CD7', '#251C3D'),
+  new Theme('Forest', '#EAF7EC', '#FFFFFF', '#2E7D32', '#1B2E1E', '#5C7C62', '#D7EEDB'),
+  new Theme('Sunset', '#FFF1E6', '#FFFFFF', '#F97316', '#3A1C10', '#8A5640', '#FFE1CC'),
+  new Theme('Ocean', '#E7F6FF', '#FFFFFF', '#0284C7', '#0B2238', '#4D6A82', '#D6EEFF'),
+  new Theme('Minimal', '#F6F6F6', '#FFFFFF', '#111827', '#111827', '#6B7280', '#E5E7EB')
 ];
 
 @CustomDialog
@@ -91,7 +91,7 @@ struct ExportDialog {
 
   build(): void {
     Column({ space: 12 }) {
-      Text('导出数据')
+      Text('Export Data')
         .fontSize(18)
         .fontWeight(FontWeight.Medium);
       TextArea({ text: this.text })
@@ -100,13 +100,13 @@ struct ExportDialog {
         .fontSize(12)
         .backgroundColor('#F3F4F6');
       Row({ space: 12 }) {
-        Button('复制')
+        Button('Copy')
           .backgroundColor('#111827')
           .fontColor('#FFFFFF')
           .onClick(() => {
             this.onCopy();
           });
-        Button('关闭')
+        Button('Close')
           .backgroundColor('#E5E7EB')
           .fontColor('#111827')
           .onClick(() => {
@@ -136,10 +136,10 @@ struct ImportDialog {
 
   build(): void {
     Column({ space: 12 }) {
-      Text('导入数据')
+      Text('Import Data')
         .fontSize(18)
         .fontWeight(FontWeight.Medium);
-      TextArea({ text: this.text, placeholder: '粘贴 JSON 备份数据' })
+      TextArea({ text: this.text, placeholder: 'Paste JSON backup' })
         .height(180)
         .borderRadius(12)
         .fontSize(12)
@@ -148,13 +148,13 @@ struct ImportDialog {
           this.text = value;
         });
       Row({ space: 12 }) {
-        Button('导入')
+        Button('Import')
           .backgroundColor('#111827')
           .fontColor('#FFFFFF')
           .onClick(() => {
             this.onImport(this.text);
           });
-        Button('取消')
+        Button('Cancel')
           .backgroundColor('#E5E7EB')
           .fontColor('#111827')
           .onClick(() => {
@@ -240,7 +240,7 @@ struct Index {
       }
       this.themeName = theme;
     } catch (err) {
-      promptAction.showToast({ message: '读取本地数据失败，已使用默认数据' });
+      promptAction.showToast({ message: 'Failed to load local data, using defaults.' });
     }
   }
 
@@ -362,7 +362,7 @@ struct Index {
   private addTodo(): void {
     const text = this.newTodoText.trim();
     if (!text) {
-      promptAction.showToast({ message: '请输入待办内容' });
+      promptAction.showToast({ message: 'Please enter a todo.' });
       return;
     }
     const dateStr = this.selectedDate;
@@ -408,7 +408,7 @@ struct Index {
   }
 
   private getMonthLabel(): string {
-    return this.currentYear + '年 ' + (this.currentMonth + 1) + '月';
+    return this.currentYear + '-' + (this.currentMonth + 1);
   }
 
   private getTodayStr(): string {
@@ -446,12 +446,12 @@ struct Index {
       const systemPaste = pasteboard.getSystemPasteboard();
       const data = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, this.exportText);
       systemPaste.setData(data).then(() => {
-        promptAction.showToast({ message: '已复制到剪贴板' });
+        promptAction.showToast({ message: 'Copied to clipboard.' });
       }).catch(() => {
-        promptAction.showToast({ message: '复制失败，请手动选择复制' });
+        promptAction.showToast({ message: 'Copy failed, please copy manually.' });
       });
     } catch (err) {
-      promptAction.showToast({ message: '复制失败，请手动选择复制' });
+      promptAction.showToast({ message: 'Copy failed, please copy manually.' });
     }
   }
 
@@ -510,20 +510,26 @@ struct Index {
       this.todos = entries;
       this.saveTodos();
       this.importDialogController.close();
-      promptAction.showToast({ message: '导入成功' });
+      promptAction.showToast({ message: 'Import successful.' });
     } catch (err) {
-      promptAction.showToast({ message: 'JSON 格式不正确，请检查内容' });
+      promptAction.showToast({ message: 'Invalid JSON, please check content.' });
     }
   }
 
   build(): void {
     Column({ space: 16 }) {
       Column({ space: 8 }) {
-        Text('Todo List')
-          .fontSize(26)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(this.getTheme().text);
-        Text('日历待办事项')
+        Row({ space: 10 }) {
+          Image($r('app.media.logo'))
+            .width(36)
+            .height(36)
+            .objectFit(ImageFit.Contain);
+          Text('iTodo')
+            .fontSize(26)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.getTheme().text);
+        }
+        Text('Calendar Tasks')
           .fontSize(14)
           .fontColor(this.getTheme().subText);
       }
@@ -639,12 +645,12 @@ struct Index {
 
       Column({ space: 12 }) {
         Row() {
-          Text('待办 - ' + this.selectedDate)
+          Text('Todos - ' + this.selectedDate)
             .fontSize(16)
             .fontWeight(FontWeight.Medium)
             .fontColor(this.getTheme().text)
             .layoutWeight(1);
-          Button('导出')
+          Button('Export')
             .height(30)
             .padding({ left: 10, right: 10 })
             .borderRadius(16)
@@ -653,7 +659,7 @@ struct Index {
             .onClick(() => {
               this.showExportDialog();
             });
-          Button('导入')
+          Button('Import')
             .height(30)
             .padding({ left: 10, right: 10 })
             .borderRadius(16)
@@ -665,7 +671,7 @@ struct Index {
         }
 
         Row({ space: 10 }) {
-          TextInput({ text: this.newTodoText, placeholder: '添加新的待办' })
+          TextInput({ text: this.newTodoText, placeholder: 'Add a new todo' })
             .layoutWeight(1)
             .height(40)
             .backgroundColor('#F3F4F6')
@@ -674,7 +680,7 @@ struct Index {
             .onChange((value: string) => {
               this.newTodoText = value;
             });
-          Button('添加')
+          Button('Add')
             .height(40)
             .padding({ left: 16, right: 16 })
             .borderRadius(12)
@@ -686,7 +692,7 @@ struct Index {
         }
 
         if (this.getTodosByDate(this.selectedDate).length === 0) {
-          Text('今天没有安排任务')
+          Text('No tasks for this date')
             .fontSize(13)
             .fontColor(this.getTheme().subText)
             .padding({ top: 12 });
@@ -694,7 +700,7 @@ struct Index {
           Column({ space: 10 }) {
             ForEach(this.getTodosByDate(this.selectedDate), (item: TodoItem) => {
               Row({ space: 10 }) {
-                Button(item.completed ? '已完成' : '完成')
+                Button(item.completed ? 'Done' : 'Complete')
                   .height(28)
                   .padding({ left: 10, right: 10 })
                   .borderRadius(14)
@@ -710,7 +716,7 @@ struct Index {
                     type: item.completed ? TextDecorationType.LineThrough : TextDecorationType.None
                   })
                   .layoutWeight(1);
-                Button('删除')
+                Button('Delete')
                   .height(28)
                   .padding({ left: 10, right: 10 })
                   .borderRadius(14)
@@ -738,3 +744,6 @@ struct Index {
     .backgroundColor(this.getTheme().background);
   }
 }
+
+
+
