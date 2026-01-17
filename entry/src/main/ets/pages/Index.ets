@@ -1,4 +1,5 @@
 ﻿import preferences from '@ohos.data.preferences';
+import window from '@ohos.window';
 import pasteboard from '@ohos.pasteboard';
 import promptAction from '@ohos.promptAction';
 import type common from '@ohos.app.ability.common';
@@ -71,6 +72,7 @@ class CalendarDay {
   }
 }
 
+const APP_VERSION: string = '1.0.0';
 const WEEK_LABELS: Array<string> = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const THEMES: Theme[] = [
@@ -180,8 +182,11 @@ struct Index {
   @State newTodoText: string = '';
   @State themeName: string = THEMES[0].name;
   @State exportText: string = '';
+  @State keyboardPadding: string = '0px';
 
   private pref?: preferences.Preferences;
+  private mainWindow?: window.Window;
+  private keyboardListener?: (height: number) => void;
   private exportDialogController: CustomDialogController = new CustomDialogController({
     builder: () => {
       ExportDialog({
@@ -219,8 +224,42 @@ struct Index {
     this.currentYear = now.getFullYear();
     this.selectedDate = this.formatDate(now);
     this.loadPreferences();
+    this.registerKeyboardListener();
   }
 
+  aboutToDisappear(): void {
+    this.unregisterKeyboardListener();
+  }
+
+  private registerKeyboardListener(): void {
+    try {
+      const context = getContext(this) as common.UIAbilityContext;
+      window.getLastWindow(context).then((win: window.Window) => {
+        this.mainWindow = win;
+        this.keyboardListener = (height: number) => {
+          if (height > 0) {
+            this.keyboardPadding = height + 'px';
+          } else {
+            this.keyboardPadding = '0px';
+          }
+        };
+        if (this.keyboardListener) {
+          this.mainWindow.on('keyboardHeightChange', this.keyboardListener);
+        }
+      }).catch(() => {
+      });
+    } catch (err) {
+    }
+  }
+
+  private unregisterKeyboardListener(): void {
+    if (this.mainWindow && this.keyboardListener) {
+      this.mainWindow.off('keyboardHeightChange', this.keyboardListener);
+    }
+    this.keyboardListener = undefined;
+    this.mainWindow = undefined;
+    this.keyboardPadding = '0px';
+  }
   private pad2(value: number): string {
     if (value < 10) {
       return '0' + value;
@@ -517,7 +556,8 @@ struct Index {
   }
 
   build(): void {
-    Column({ space: 16 }) {
+    Scroll() {
+      Column({ space: 16 }) {
       Column({ space: 8 }) {
         Row({ space: 10 }) {
           Image($r('app.media.logo'))
@@ -529,7 +569,7 @@ struct Index {
             .fontWeight(FontWeight.Bold)
             .fontColor(this.getTheme().text);
         }
-        Text('Calendar Tasks')
+        Text('v' + APP_VERSION + '  ·  Calendar Tasks')
           .fontSize(14)
           .fontColor(this.getTheme().subText);
       }
@@ -599,7 +639,8 @@ struct Index {
             Column() {
               Text(dayInfo.label)
                 .fontSize(14)
-                .fontColor(dayInfo.isCurrentMonth ? this.getTheme().text : this.getTheme().subText)
+                .fontColor(this.isSelectedDate(dayInfo.dateStr) ? '#FFFFFF'
+                  : (dayInfo.isCurrentMonth ? this.getTheme().text : this.getTheme().subText))
                 .fontWeight(this.isSelectedDate(dayInfo.dateStr) ? FontWeight.Medium : FontWeight.Regular)
                 .textAlign(TextAlign.Center)
                 .padding({ top: 10, bottom: 6 });
@@ -608,7 +649,7 @@ struct Index {
                   .width(6)
                   .height(6)
                   .borderRadius(3)
-                  .backgroundColor(this.getTheme().accent)
+                  .backgroundColor(this.isSelectedDate(dayInfo.dateStr) ? '#FFFFFF' : this.getTheme().accent)
                   .margin({ bottom: 6 });
               } else {
                 Row()
@@ -633,7 +674,10 @@ struct Index {
             })
             .padding({ bottom: 6 })
             .opacity(dayInfo.isCurrentMonth ? 1 : 0.45)
-            .border({ width: this.isToday(dayInfo.dateStr) ? 1 : 0, color: this.getTheme().accent });
+            .border({
+              width: this.isSelectedDate(dayInfo.dateStr) ? 0 : (this.isToday(dayInfo.dateStr) ? 1 : 0),
+              color: this.getTheme().accent
+            });
           });
         }
       }
@@ -738,12 +782,23 @@ struct Index {
       .backgroundColor(this.getTheme().background)
       .borderRadius(24)
       .margin({ left: 20, right: 20, bottom: 24 });
+      }
+      .width('100%')
+      .padding({ bottom: this.keyboardPadding })
+      .backgroundColor(this.getTheme().background);
     }
     .width('100%')
     .height('100%')
+    .scrollable(ScrollDirection.Vertical)
+    .scrollBar(BarState.Off)
     .backgroundColor(this.getTheme().background);
   }
 }
+
+
+
+
+
 
 
 
